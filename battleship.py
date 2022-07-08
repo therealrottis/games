@@ -2,6 +2,7 @@ from os import system
 from random import randrange
 from string import ascii_uppercase, ascii_lowercase
 from math import ceil
+from time import sleep
 
 # wip: end of file for more details
 
@@ -18,7 +19,7 @@ def draw_board(inputlist):
     else:
         list_=inputlist.copy()
     output=""
-    symwid=len(str(list_[0][0]))
+    symwid=3
     wid=len(list_[0])
     lsep = "   "
     lheaders = []
@@ -45,8 +46,6 @@ def draw_board(inputlist):
     return output
 
 def decipher(str_:str, vcheck:bool): # deciphers coordinate input into list pos
-    if str_ == "exit":
-        return "exit"
     numindex,letindex = [],[]
     for i in range(1,11):
         numindex.insert(-i, str(i))
@@ -56,9 +55,9 @@ def decipher(str_:str, vcheck:bool): # deciphers coordinate input into list pos
         if str_.find(letindex[i]) != -1:
             output += i
             strf += 1
-        if str_.find(numindex[i]) != -1:
-            output += 10*int(numindex[i])
-            numf += 1
+        if str_.find(numindex[i]) != -1 and ((numindex[i] == "1" and numf == 0) or numindex[i] != "1"):
+            output += 10*int(numindex[i]) # all weird numindex checking above to stop 10 from
+            numf += 1                     # triggering the system once for 10 and once for 1
     if strf != 1 or numf != 1:
         return "illegal input"
     elif not p2board[output] == "   ":
@@ -66,6 +65,44 @@ def decipher(str_:str, vcheck:bool): # deciphers coordinate input into list pos
     if vcheck and str_.find("v") != -1: # if vcheck, output + 1000
         output += 1000
     return output
+
+def reverse_decipher(int_:int):
+    numindex,letindex = [],[]
+    for i in range(1,11):
+        numindex.append(str(i))
+        letindex.append(ascii_uppercase[i-1])
+    output = letindex[int_%10] + numindex[int_//10]
+    return output
+
+def wincheck(player:int):
+    global p1ships
+    global p2ships
+    if player == "":
+        if p1ships.count(True) == 0:
+            return 2
+        elif p2ships.count(True) == 0:
+            return 1
+        else:
+            return False
+    if player == 2:
+        check = p2ships
+    else:
+        check = p1ships
+    if check.count(True) == 0:
+        return True
+    return False
+    
+def hitcheck(player:int,pos:int):
+    if player == 2:
+        global p2ships
+        check = p2ships
+    else:
+        global p1ships
+        check = p1ships
+    if check[pos] == True:
+        check[pos] = False
+        return True
+    return False
 
 def shipcheck(board:list, length:int, pos:int, v:bool):
     if len(str(pos)) != 2:
@@ -83,25 +120,27 @@ def shipcheck(board:list, length:int, pos:int, v:bool):
     return True
 
 def p_input(player:int):
-    if player == "" or player == 1:
-        global p2board
-        print(draw_board(p2board))
-    else:
+    if player == 2:
         global p1board
         print(draw_board(p1board))
-    spot = input("Where do you want to play? ")
-    if spot == "exit":
-        return "exit"
-    spot = spot.lower()
-    output = decipher(spot)
-    print(output)
-    if output == "illegal input":
-        print("Input not recognized")
-        return False
-    elif output == "not empty":
-        print("You already tried that spot")
-        return False
-    return output
+        player = "(Player 2)"
+    else:
+        global p2board
+        print(draw_board(p2board))
+    if player == 1:
+        player = "(Player 1)"
+    while True:
+        spot = input(f"Where do you want to play? {player}")
+        spot = spot.lower()
+        if spot == "exit":
+            exit()
+        output = decipher(spot,"")
+        if output == "illegal input":
+            print("Input not recognized")
+        elif output == "not empty":
+            print("You already tried that spot")
+        else:
+            return output
 
 def p_ships(int_:int):
     system("cls")
@@ -145,7 +184,6 @@ def p_ships(int_:int):
             cancel = False
             i -= 1
     print(draw_board(board))
-    input("Ships placed! (press enter to continue...)\n")
     ships_cur = []
     for i in board:
         if i == " s ":
@@ -158,7 +196,45 @@ def p_ships(int_:int):
     else:
         global p1ships
         p1ships = ships_cur.copy()
+    input("Ships placed! (press enter to continue...)\n")
+    system("cls")
     return
+
+def random_ships(player:int):
+    output = []
+    noprint = False
+    if player == 3:
+        player = 2
+        noprint = True
+    for i in range(100):
+        output.append("   ")
+    ships = [5, 4, 3, 3, 2]
+    i = 0
+    while i < 5:
+        vert = randrange(2)
+        pos = randrange(100)
+        check = shipcheck(output,ships[i],pos,vert)
+        if check != True:
+            i
+        else:
+            for j in range(ships[i]):
+                output[pos+j*(vert*9+1)] = " s "
+            i += 1  
+    if not noprint:
+        print(draw_board(output))
+    input = output.copy()
+    output = []
+    for i in input:
+        if i == " s ":
+            output.append(True)
+        else:
+            output.append(False)
+    if player == 2:
+        global p2ships
+        p2ships = output.copy()
+    else:
+        global p1ships
+        p1ships = output.copy()
 
 
 def empty_board():
@@ -183,16 +259,75 @@ def random_board(w:int, h:int, sym:list):
         output.append(filllist)
     return output
 
+def start_game(mode:str):
+    global p1ships
+    global p2ships
+    input_ = ""
+    if mode == "AI":
+        random_ships(3)
+        system("cls")
+        print("Starting", mode, "game... ")
+        while input_ != "y" and input_ != "n":
+            input_ = input("Do you want to place your ships? (y/n) ")
+            if input_ == "y":
+                p_ships(1)
+            elif input_ == "n":
+                random_ships(1)
+                input("Press enter to continue...")
+                system("cls")
+            elif input_ == "exit":
+                exit()
+        while not wincheck(""):
+            system("cls")
+            spot = p_input("")
+            system("cls")
+            coordspot = reverse_decipher(spot)
+            if p2ships[spot]:
+                print(coordspot, "is a hit!")
+                p2board[spot] = " \033[91m"+"X"+"\033[0m "
+            else:
+                print(coordspot, "is a miss.")
+                p2board[spot] = " X "
+            print(draw_board(p2board))
+            sleep(1)
+        wincheck(1)
+        wincheck(2)
+            
+    else:
+        for i in range(1,3):
+            input_ = ""
+            while input_ != "y" and input_ != "n":
+                input_ = input(f"Do you want to place your ships? (Player {i}) (y/n) ")
+                if input_ == "y":
+                    p_ships(i)
+                elif input_ == "n":
+                    random_ships(1)
+                    input("Press enter to continue...")
+                    system("cls")
+                elif input_ == "exit":
+                    exit()
+
+def main():
+    while True:
+        system("cls")
+        input_ = input("Play 1v1 or against the AI? ").lower()
+        system("cls")
+        if input_ == "1v1" or input_ == "mp":
+            start_game("1v1")
+        elif input_ == "ai" or input_ == "sp":
+            start_game("AI")
+        elif input_ == "exit":
+            exit()
+
 p1board = empty_board()
 p2board = empty_board()
 p1ships, p2ships = [], []
+p1shiploc, p2shiploc = [], []
+shipnames = ["Carrier", "Battleship", "Destroyer", "Submarine", "Patrol Boat"]
 
-p_ships("")
-print(draw_board(p1ships))
-print(draw_board(p2ships))
-
+main()
 
 # TBD:
-# wincheck
-# AI
-# game main()
+# ship sunk message + ship name via shiploc and shipnames 
+# AI, show ai playing
+# (wip)game main()
