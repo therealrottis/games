@@ -147,6 +147,7 @@ def p_ships(int_:int):
     board = empty_board()
     ships = [[5, 4, 3, 3, 2], ["Carrier", "Battleship", "Destroyer", "Submarine", "Patrol Boat"]]
     cancel,i = False,0
+    loc = [[],[],[],[],[]]
     while i < len(ships[0]):
         vert = False
         print(draw_board(board))
@@ -178,7 +179,9 @@ def p_ships(int_:int):
                         cancel = True
                 if cancel == False:
                     for j in range(ships[0][i]):
-                        board[pos+j*(vert*9+1)] = " s "   
+                        temppos = pos+j*(vert*9+1)
+                        loc[i].append(temppos)
+                        board[temppos] = " s "   
         i += 1   
         if cancel:
             cancel = False
@@ -192,10 +195,14 @@ def p_ships(int_:int):
             ships_cur.append(False)
     if int_ == 2:
         global p2ships
+        global p2shiploc
         p2ships = ships_cur.copy()
+        p2shiploc = loc.copy()
     else:
         global p1ships
+        global p1shiploc
         p1ships = ships_cur.copy()
+        p1shiploc = loc.copy()
     input("Ships placed! (press enter to continue...)\n")
     system("cls")
     return
@@ -210,15 +217,16 @@ def random_ships(player:int):
         output.append("   ")
     ships = [5, 4, 3, 3, 2]
     i = 0
+    loc = [[],[],[],[],[]]
     while i < 5:
         vert = randrange(2)
         pos = randrange(100)
         check = shipcheck(output,ships[i],pos,vert)
-        if check != True:
-            i
-        else:
+        if check == True:
             for j in range(ships[i]):
-                output[pos+j*(vert*9+1)] = " s "
+                temppos = pos+j*(vert*9+1)
+                loc[i].append(temppos)
+                output[temppos] = " s "
             i += 1  
     if not noprint:
         print(draw_board(output))
@@ -231,10 +239,14 @@ def random_ships(player:int):
             output.append(False)
     if player == 2:
         global p2ships
+        global p2shiploc
         p2ships = output.copy()
+        p2shiploc = loc.copy()
     else:
         global p1ships
+        global p1shiploc
         p1ships = output.copy()
+        p1shiploc = loc.copy()
 
 
 def empty_board():
@@ -277,14 +289,41 @@ def start_game(mode:str):
                 system("cls")
             elif input_ == "exit":
                 exit()
-        while not wincheck(""):
+        while wincheck("") == False:
             system("cls")
+            print(p2shiploc)
             spot = p_input("")
             system("cls")
             coordspot = reverse_decipher(spot)
             if p2ships[spot]:
-                print(coordspot, "is a hit!")
                 p2board[spot] = " \033[91m"+"X"+"\033[0m "
+                for i in range(5):
+                    if p2shiploc[i].count(spot):
+                        if shipinfo[2][i] != 1:
+                            shipinfo[2][i] -= 1
+                            print(coordspot, "is a hit!")
+                        else:
+                            system("cls")
+                            print(coordspot, "sinks a ship!")
+                            print(f"You have sunk the enemy's {shipinfo[0][i]}!")
+                            print(draw_board(p2board))
+                            for j in range(shipinfo[3][i]):
+                                p2board[p2shiploc[i][j]] = " \033[91m"+"O"+"\033[0m "
+                                for k in range(2):
+                                    temp1 = str(p2shiploc[i][j])
+                                    if len(str(temp1)) == 1:
+                                        temp1 = "0"+temp1
+                                    temp2 = str(p2shiploc[i][k])
+                                    if len(str(temp2)) == 1:
+                                        temp2 = "0"+temp2
+                                    if int(temp1[k])+int(str((k*9+1))[k]) < 10 and p2board[int(temp1)+(k*9+1)] == "   ":
+                                        p2board[int(temp1)+(k*9+1)] = " X "
+                                    if int(temp2[k])-int(str((k*9+1))[k]) > -1 and p2board[int(temp2)-(k*9+1)] == "   ":
+                                        p2board[int(temp2)-(k*9+1)] = " X "
+
+                        
+                
+                
             else:
                 print(coordspot, "is a miss.")
                 p2board[spot] = " X "
@@ -323,11 +362,10 @@ p1board = empty_board()
 p2board = empty_board()
 p1ships, p2ships = [], []
 p1shiploc, p2shiploc = [], []
-shipnames = ["Carrier", "Battleship", "Destroyer", "Submarine", "Patrol Boat"]
+shipinfo = [["Carrier", "Battleship", "Destroyer", "Submarine", "Patrol Boat"],[5,4,3,3,2],[5,4,3,3,2],[5,4,3,3,2]]
 
 main()
 
 # TBD:
-# ship sunk message + ship name via shiploc and shipnames 
 # AI, show ai playing
 # (wip)game main()
