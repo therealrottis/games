@@ -78,17 +78,19 @@ def wincheck(player:int):
     global p1ships
     global p2ships
     if player == "":
-        if p1ships.count(True) == 0:
-            return 2
-        elif p2ships.count(True) == 0:
+        if shipinfo[1].count(0) == 5 and shipinfo[2].count(0) == 5:
+            return 0
+        elif shipinfo[2].count(0) == 5:
             return 1
+        elif shipinfo[1].count(0) == 5:
+            return 2
         else:
             return False
     if player == 2:
-        check = p2ships
+        check = 1
     else:
-        check = p1ships
-    if check.count(True) == 0:
+        check = 2
+    if shipinfo[check].count(0) == 5 == 0:
         return True
     return False
     
@@ -276,6 +278,7 @@ def start_game(mode:str):
     global p2ships
     input_ = ""
     if mode == "AI":
+        turn = 1
         random_ships(3)
         system("cls")
         print("Starting", mode, "game... ")
@@ -290,45 +293,51 @@ def start_game(mode:str):
             elif input_ == "exit":
                 exit()
         while wincheck("") == False:
-            system("cls")
-            print(p2shiploc)
-            spot = p_input("")
-            system("cls")
-            coordspot = reverse_decipher(spot)
-            if p2ships[spot]:
-                p2board[spot] = " \033[91m"+"X"+"\033[0m "
-                for i in range(5):
-                    if p2shiploc[i].count(spot):
-                        if shipinfo[2][i] != 1:
-                            shipinfo[2][i] -= 1
-                            print(coordspot, "is a hit!")
-                        else:
-                            system("cls")
-                            print(coordspot, "sinks a ship!")
-                            print(f"You have sunk the enemy's {shipinfo[0][i]}!")
-                            print(draw_board(p2board))
-                            for j in range(shipinfo[3][i]):
-                                p2board[p2shiploc[i][j]] = " \033[91m"+"O"+"\033[0m "
-                                for k in range(2):
-                                    temp1 = str(p2shiploc[i][j])
-                                    if len(str(temp1)) == 1:
-                                        temp1 = "0"+temp1
-                                    temp2 = str(p2shiploc[i][k])
-                                    if len(str(temp2)) == 1:
-                                        temp2 = "0"+temp2
-                                    if int(temp1[k])+int(str((k*9+1))[k]) < 10 and p2board[int(temp1)+(k*9+1)] == "   ":
-                                        p2board[int(temp1)+(k*9+1)] = " X "
-                                    if int(temp2[k])-int(str((k*9+1))[k]) > -1 and p2board[int(temp2)-(k*9+1)] == "   ":
-                                        p2board[int(temp2)-(k*9+1)] = " X "
+            print(wincheck(""))
+            if turn == 1:
+                system("cls")
+                spot = p_input("")
+                system("cls")
+                coordspot = reverse_decipher(spot)
+                if p2ships[spot]:
+                    turn = 1
+                    p2board[spot] = " \033[91m"+"X"+"\033[0m "
+                    for i in range(5):
+                        if p2shiploc[i].count(spot):
+                            if shipinfo[2][i] != 1:
+                                shipinfo[2][i] -= 1
+                                print(coordspot, "is a hit!")
+                            else:
+                                system("cls")
+                                print(coordspot, "sinks a ship!")
+                                print(f"You have sunk the enemy's {shipinfo[0][i]}!")
+                                for j in range(shipinfo[3][i]):
+                                    p2board[p2shiploc[i][j]] = " \033[91m"+"O"+"\033[0m "
+                                    for k in range(2):
+                                        temp = str(p2shiploc[i][j])
+                                        if len(str(temp)) == 1:
+                                            temp = "0"+temp
+                                        k2 = not k
+                                        if int(temp[k]) != 9: 
+                                            if p2board[int(temp)+(k2*9+1)] == "   ":
+                                                p2board[int(temp)+(k2*9+1)] = " X "
+                                        if int(temp[k]) != 0:
+                                            if p2board[int(temp)-(k2*9+1)] == "   ":
+                                                p2board[int(temp)-(k2*9+1)] = " X "    
+                                if shipinfo[2].count(0) == 5:
+                                    turn = 0
+                else:
+                    print(coordspot, "is a miss.")
+                    p2board[spot] = " X "
+                    turn = 2
+                print(draw_board(p2board))
+                sleep(1)
+            if turn == 2:
+                print("aimove")
+                turn = 1
+                sleep(0.3)
 
-                        
-                
-                
-            else:
-                print(coordspot, "is a miss.")
-                p2board[spot] = " X "
-            print(draw_board(p2board))
-            sleep(1)
+
         wincheck(1)
         wincheck(2)
             
