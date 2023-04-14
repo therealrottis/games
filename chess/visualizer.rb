@@ -3,20 +3,32 @@ class Visualizer
     output = ""
     array.each do |row|
       row.each do |cell|
-        output += cell.to_s + " "
+        output += cell.to_s + " |"
       end
       output += "\n"
     end
     output
   end
 
-  def self.print_board(board)
+  def self.print_board(board, flip = false)
     files = (1..8).reverse_each
     board.each do |row|
-      row.unshift(x = files.next)
-      puts x
+      row.unshift(files.next)
     end
-    board.push([" ", "a", "b", "c", "d", "e", "f", "g", "h"])
+    header = [" ", "a", "b", "c", "d", "e", "f", "g", "h"]
+    if flip
+      board.push(header)
+    else
+      board.unshift(header)
+    end
+    unless flip
+      board.each do |row| 
+        row.reverse!
+        row.unshift(row[-1])
+        row.pop[-1]
+      end 
+      board.reverse!
+    end
     Visualizer.print_array(board)
   end
 
