@@ -3,9 +3,9 @@ require 'colorize'
 
 class Board
   def initialize
-  @board = [[2, 4, 8, 16],
-            [32, 64, 128, 256],
-            [512, 1024, 2048, 0],
+  @board = [[0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 2, 0, 0],
             [0, 0, 0, 0]]
   end
 
