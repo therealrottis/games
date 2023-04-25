@@ -115,9 +115,10 @@ class Board
   end
 
   def display
+    output = ""
     @board.each { |row| 
-      puts "+------"*4 + "+"
-      puts "|      "*4 + "|"
+      output += "+------"*4 + "+\n"
+      output += "|      "*4 + "|\n"
       row.each { |cell| 
         c = cell.to_s
         unless cell == 0
@@ -131,12 +132,13 @@ class Board
           c = "    "
         end
         c = add_color(c)
-        print "| #{c} "
+        output += "| #{c} "
         }
-      puts "|"
-      puts "|      "*4 + "|"
+      output += "|\n"
+      output += "|      "*4 + "|\n"
     }
-    puts "+------"*4 + "+"
+    output += "+------"*4 + "+\n"
+    output
   end
 
   def board
@@ -221,29 +223,30 @@ def main
     end
     debug_log(char, :input)
     move = -1
+    char.downcase!
     case char
-      when "\x00K" then move = 0 #left
-      when "\xE0K" then move = 0
+      when "\x00k" then move = 0 #left
+      when "\xE0k" then move = 0
       when "a" then move = 0
-      when "\x00M" then move = 1 #right
-      when "\xE0M" then move = 1
+      when "\x00m" then move = 1 #right
+      when "\xE0m" then move = 1
       when "d" then move = 1
-      when "\x00H" then move = 2 #up
-      when "\xE0H" then move = 2
+      when "\x00h" then move = 2 #up
+      when "\xE0h" then move = 2
       when "w" then move = 2
-      when "\x00P" then move = 3 #down
-      when "\xE0P" then move = 3
+      when "\x00p" then move = 3 #down
+      when "\xE0p" then move = 3
       when "s" then move = 3
     end
-    puts move
     unless move == -1
       move = board.do_move(move)
       unless move == false
+        d = board.display
         system("cls")
         puts
         puts "Score: #{$core}"
         puts
-        board.display
+        puts d
         puts
       end
     end
