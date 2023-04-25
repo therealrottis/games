@@ -1,5 +1,6 @@
 from os import system
 from random import randrange
+from secrets import randbelow
 from string import ascii_uppercase, ascii_lowercase
 from math import ceil
 from time import sleep
@@ -250,12 +251,29 @@ def random_ships(player:int):
         p1ships = output.copy()
         p1shiploc = loc.copy()
 
-
 def empty_board():
     output = []
     for i in range(100):
         output.append("   ")
     return output
+
+def ai_move():
+    global p1board
+    if p1board.count(" \033[91m"+"X"+"\033[0m ") > 0:
+        pos = p1board.find(" \033[91m"+"X"+"\033[0m ")
+        temp = [1,10,-1,-10]
+        for i in range(2):
+            if temp[i] + pos < 99:
+                print("",end="")
+            elif temp[i+2] + pos > 0:
+                print("",end="")
+    else:
+        popboard = p1board.copy()
+        move = randbelow(p1board.count("   "))
+        for i in range(move):
+            popboard[(popboard.find("   "))] = False
+        #shoot  
+        p1board[popboard.find("   ")] = " X "
 
 def random_board(w:int, h:int, sym:list):
     w = 10
@@ -273,6 +291,50 @@ def random_board(w:int, h:int, sym:list):
         output.append(filllist)
     return output
 
+def pshoot(spot, coordspot, player):
+    global turn
+    if player == 1:
+        pboard = p2board
+        pships = p2ships
+        pshiploc = p2shiploc
+        multi = 0
+    else:
+        pboard = p1board
+        pships = p1ships
+        pshiploc = p1shiploc
+        multi = 1
+    if pships[spot]:
+        turn = 1+multi
+        pboard[spot] = " \033[91m"+"X"+"\033[0m "
+        for i in range(5):
+            if pshiploc[i].count(spot):
+                if shipinfo[player][i] != 1:
+                    shipinfo[player][i] -= 1
+                    print(coordspot, "is a hit!")
+                else:
+                    system("cls")
+                    print(coordspot, "sinks a ship!")
+                    print(f"You have sunk the enemy's {shipinfo[0][i]}!")
+                    for j in range(shipinfo[3-multi][i]):
+                        pboard[pshiploc[i][j]] = " \033[91m"+"O"+"\033[0m "
+                        for k in range(2):
+                            temp = str(pshiploc[i][j])
+                            if len(str(temp)) == 1:
+                                temp = "0"+temp
+                            k2 = not k
+                            if int(temp[k]) != 9: 
+                                if pboard[int(temp)+(k2*9+1)] == "   ":
+                                    pboard[int(temp)+(k2*9+1)] = " X "
+                            if int(temp[k]) != 0:
+                                if pboard[int(temp)-(k2*9+1)] == "   ":
+                                    pboard[int(temp)-(k2*9+1)] = " X "    
+                    if shipinfo[2-multi].count(0) == 5:
+                        turn = 0
+    else:
+        print(coordspot, "is a miss.")
+        pboard[spot] = " X "
+        turn = 2-multi
+
 def start_game(mode:str):
     global p1ships
     global p2ships
@@ -283,7 +345,7 @@ def start_game(mode:str):
         system("cls")
         print("Starting", mode, "game... ")
         while input_ != "y" and input_ != "n":
-            input_ = input("Do you want to place your ships? (y/n) ")
+            input_ = input("Do you want to place your ships? (y/n) ").lower().replace(" ", "")
             if input_ == "y":
                 p_ships(1)
             elif input_ == "n":
@@ -299,37 +361,7 @@ def start_game(mode:str):
                 spot = p_input("")
                 system("cls")
                 coordspot = reverse_decipher(spot)
-                if p2ships[spot]:
-                    turn = 1
-                    p2board[spot] = " \033[91m"+"X"+"\033[0m "
-                    for i in range(5):
-                        if p2shiploc[i].count(spot):
-                            if shipinfo[2][i] != 1:
-                                shipinfo[2][i] -= 1
-                                print(coordspot, "is a hit!")
-                            else:
-                                system("cls")
-                                print(coordspot, "sinks a ship!")
-                                print(f"You have sunk the enemy's {shipinfo[0][i]}!")
-                                for j in range(shipinfo[3][i]):
-                                    p2board[p2shiploc[i][j]] = " \033[91m"+"O"+"\033[0m "
-                                    for k in range(2):
-                                        temp = str(p2shiploc[i][j])
-                                        if len(str(temp)) == 1:
-                                            temp = "0"+temp
-                                        k2 = not k
-                                        if int(temp[k]) != 9: 
-                                            if p2board[int(temp)+(k2*9+1)] == "   ":
-                                                p2board[int(temp)+(k2*9+1)] = " X "
-                                        if int(temp[k]) != 0:
-                                            if p2board[int(temp)-(k2*9+1)] == "   ":
-                                                p2board[int(temp)-(k2*9+1)] = " X "    
-                                if shipinfo[2].count(0) == 5:
-                                    turn = 0
-                else:
-                    print(coordspot, "is a miss.")
-                    p2board[spot] = " X "
-                    turn = 2
+                pshoot(spot, coordspot, 1)
                 print(draw_board(p2board))
                 sleep(1)
             if turn == 2:
@@ -345,7 +377,7 @@ def start_game(mode:str):
         for i in range(1,3):
             input_ = ""
             while input_ != "y" and input_ != "n":
-                input_ = input(f"Do you want to place your ships? (Player {i}) (y/n) ")
+                input_ = input(f"Do you want to place your ships? (Player {i}) (y/n) ").lower().replace(" ", "")
                 if input_ == "y":
                     p_ships(i)
                 elif input_ == "n":
@@ -358,7 +390,7 @@ def start_game(mode:str):
 def main():
     while True:
         system("cls")
-        input_ = input("Play 1v1 or against the AI? ").lower()
+        input_ = input("Play 1v1 or against the AI? ").lower().replace(" ", "")
         system("cls")
         if input_ == "1v1" or input_ == "mp":
             start_game("1v1")

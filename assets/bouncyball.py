@@ -26,7 +26,7 @@ def phys(x:float,y:float,xvel:float,yvel:float,wid:int,hgt:int):
         if -1 < yvel < 1:
             yvel = 0
         else:
-            yvel = -yvel / 2
+            yvel = -yvel / 1.4
     else:
         yvel -= 0.1
     if x < 0:
@@ -37,7 +37,7 @@ def phys(x:float,y:float,xvel:float,yvel:float,wid:int,hgt:int):
         xvel = -xvel
     if y > hgt:
         y = hgt
-        yvel = -yvel
+        yvel = -yvel / 1.4
     return x, y, xvel, yvel
 
 def main():
@@ -45,7 +45,7 @@ def main():
     y = 2
     xvel = 0
     yvel = 0
-    board = empty_board(100,40)
+    board = empty_board(115,50)
     olds = []
     while True:
         while len(olds) > 10:
@@ -54,7 +54,7 @@ def main():
         wid = len(board[0])-1
         hgt = len(board)-1
         intx, inty = int(round(x)), -int(round(y))-1
-        board[inty][intx] = "o"
+        board[inty][intx] = "X"
         olds.append((inty,intx))
         x, y, xvel, yvel = phys(x, y, xvel, yvel, wid, hgt)
         if keyboard.is_pressed("a"):
@@ -69,6 +69,7 @@ def main():
         output += "wad to move, e to exit"
         os.system("cls")
         print(output)
+        board[inty][intx] = "o"
 
 if __name__ == "__main__":
     main()

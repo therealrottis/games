@@ -39,21 +39,24 @@ def save_position(positions)
     case input
     when "x" then return
     when "" then prev = ""
-    when "s" then "Invalid name"
+    when "s" then prev = "Invalid name"
     else
+      system("cls")
       name = input
       if positions.keys.include?(name)
         x = Visualizer.make_prompt(
-          "A position with this name already exists, do you want to overwrite it?")
-      end
+        "A position with this name already exists, do you want to overwrite it?")
+      else x = 0 end
       unless x == 0
       else
         while true
+          system("cls")
           puts
           if prev != "" then puts prev end
-          puts "Input the desired position's FEN (#{input})"
+          puts "Input the desired position's FEN \"#{input}\" (x) to return"
           input = gets.chomp
-          if input.split(" ").length != 6 then prev = "Invalid FEN/Not a FEN code" 
+          if input == "x" then break
+          elsif input.split(" ").length != 6 then prev = "Invalid FEN/Not a FEN code" 
           else
             positions[name] = input
             positions = JSON.generate(positions)
