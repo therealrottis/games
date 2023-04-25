@@ -206,7 +206,7 @@ def debug_log(input, type)
   #:hasmoves, :input, :random
   enabled_types = []
   if enabled_types.include? type
-    puts input
+    p input
   end
 end
 
@@ -222,18 +222,23 @@ def main
     debug_log(char, :input)
     move = -1
     case char
-      when "\x00K" #left
-        move = 0
-      when "\x00M" #right
-        move = 1
-      when "\x00H" #up
-        move = 2
-      when "\x00P" #down
-        move = 3
+      when "\x00K" then move = 0 #left
+      when "\xE0K" then move = 0
+      when "a" then move = 0
+      when "\x00M" then move = 1 #right
+      when "\xE0M" then move = 1
+      when "d" then move = 1
+      when "\x00H" then move = 2 #up
+      when "\xE0H" then move = 2
+      when "w" then move = 2
+      when "\x00P" then move = 3 #down
+      when "\xE0P" then move = 3
+      when "s" then move = 3
     end
+    puts move
     unless move == -1
       move = board.do_move(move)
-      unless move = false
+      unless move == false
         system("cls")
         puts
         puts "Score: #{$core}"
@@ -245,5 +250,5 @@ def main
   end
   puts "gg"
 end
- 
+
 main
