@@ -1,12 +1,29 @@
 require 'io/console'
-require 'colorize'
+begin
+  require 'colorize'
+rescue LoadError => e
+  p e
+  puts
+  puts "Download the 'colorize' gem to add colors"
+  puts
+end
 
 class Board
-  def initialize
-  @board = [[0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 2, 0, 0],
-            [0, 0, 0, 0]]
+  def initialize(mode)
+    case mode
+    when :debug
+      $BSIZE = 4
+      @board = [[2, 4, 8, 16],
+                [32, 64, 128, 256],
+                [512, 1024, 2048, 0],
+                [9, 10, 11, 12]]
+      return
+    end
+    @board = []
+    row = []
+    $BSIZE.times { row.push(0) }
+    $BSIZE.times { @board.push(row) } 
+    self.new_random
   end
 
   def has_empty?
@@ -26,17 +43,19 @@ class Board
       return true
     end
     @board.each { |row|
-      if row[0] == row[1] || row[1] == row[2] || row[2] == row[3]
-        debug_log("ch2", :hasmoves)
-        return true
+      (1..$BSIZE).each do |i|
+        if row[i-1] == row[i]
+          debug_log("ch2", :hasmoves)
+          return true
+        end
       end
     }
-    (0..3).each { |index|
-      if @board[0][index] == @board[1][index] ||
-         @board[1][index] == @board[2][index] ||
-         @board[2][index] == @board[3][index] 
-        debug_log("ch3", :hasmoves)
-        return true    
+    (0..$BSIZE-1).each { |index|
+      (1..$BSIZE-1).each do |x|
+        if @board[x-1][index] == @board[x][index] 
+          debug_log("ch3", :hasmoves)
+          return true    
+        end
       end
     }
     false
@@ -95,7 +114,7 @@ class Board
         nrow.push(row[0])
       end
       row = nrow
-      while row.length < 4
+      while row.length < $BSIZE
         row.push(0)
       end
       @board[i] = row
@@ -117,8 +136,8 @@ class Board
   def display
     output = ""
     @board.each { |row| 
-      output += "+------"*4 + "+\n"
-      output += "|      "*4 + "|\n"
+      output += "+------"*$BSIZE + "+\n"
+      output += "|      "*$BSIZE + "|\n"
       row.each { |cell| 
         c = cell.to_s
         unless cell == 0
@@ -135,9 +154,9 @@ class Board
         output += "| #{c} "
         }
       output += "|\n"
-      output += "|      "*4 + "|\n"
+      output += "|      "*$BSIZE + "|\n"
     }
-    output += "+------"*4 + "+\n"
+    output += "+------"*$BSIZE + "+\n"
     output
   end
 
@@ -147,31 +166,43 @@ class Board
 end
 
 def add_color(text)
-  case text
-  when " 2  "
-    text.light_black
-  when " 4  "
-    text.light_white
-  when " 8  "
-    text.yellow
-  when " 16 "
-    text.green
-  when " 32 "
-    text.light_green
-  when " 64 "
-    text.blue
-  when "128 "
-    text.light_blue
-  when "256 "
-    text.cyan
-  when "512 "
-    text.magenta
-  when "1024"
-    text.light_magenta
-  when "2048"
-    text.red
-  else
-    text
+  begin
+    case text
+    when " 2  "
+      text.black
+    when " 4  "
+      text
+    when " 8  "
+      text.yellow
+    when " 16 "
+      text.light_yellow
+    when " 32 "
+      text.light_green
+    when " 64 "
+      text.blue
+    when "128 "
+      text.light_cyan
+    when "256 "
+      text.magenta
+    when "512 "
+      text.light_magenta
+    when "1024"
+      text.red
+    when "2048"
+      text.light_red
+    when " 9  " # debug colors
+      text.light_cyan
+    when " 10 "
+      text.light_green
+    when " 11 "
+      text.green
+    when " 12 "
+      text.light_yellow
+    else
+      text
+    end
+  rescue NoMethodError => e
+    return text
   end
 end
 
@@ -213,10 +244,16 @@ def debug_log(input, type)
 end
 
 def main
-  board = Board.new
   $core = 0
+  $BSIZE = 5
+  board = Board.new(:n)
+  puts "WASD to begin..."
   while board.has_moves?
-    char = STDIN.getch
+    if true
+      char = STDIN.getch
+    else
+      char = "wasd"[rand(4)]
+    end
     if char == "x" || char == "\u0003"
       puts "..."
       exit(1)
@@ -242,7 +279,7 @@ def main
       move = board.do_move(move)
       unless move == false
         d = board.display
-        system("cls")
+        system("cls") || system('clear')
         puts
         puts "Score: #{$core}"
         puts
@@ -251,7 +288,7 @@ def main
       end
     end
   end
-  puts "gg"
+  puts "Game over!"
 end
 
 main
